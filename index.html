@@ -3,10 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>停車場比價網</title>
+    <title>PARKGO</title>
     <link rel="stylesheet" href="./main.css">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.13.0/mapbox-gl.js"></script>
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.13.0/mapbox-gl.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <style>
+    /* i-modal.html modal styles */
+    #open-modal {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #00ccff;
+      color: #000;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      z-index: 1001;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.8);
+    }
+    .modal-content {
+      background-color: #1c1c1e;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 800px;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .highlight {
+      color: #00ccff;
+      font-weight: bold;
+    }
+    .modal-content a {
+      color: #00ccff;
+      text-decoration: none;
+    }
+    .modal-content a:hover {
+      text-decoration: underline;
+    }
+    #main-title {
+      font-family: 'Montserrat', 'Segoe UI', 'Arial', sans-serif;
+      font-size: 2.1rem;
+      letter-spacing: 2px;
+      font-weight: 700;
+      color: #fff;
+      margin-left: 48px;
+      position: relative;
+      top: -1px;
+    }
+
+    /* 新增：按鈕樣式 */
+    #range-submit-btn {
+      display: block;
+      width: 60%;
+      margin: 16px 0 0 12%;
+      padding: 10px 0;
+      border: none;
+      border-radius: 24px;
+      background: linear-gradient(90deg, #3498db 0%, #6dd5fa 100%);
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(52,152,219,0.15);
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+      letter-spacing: 2px;
+      text-align: center;
+      outline: none;
+    }
+    #range-submit-btn:hover, #range-submit-btn:focus {
+      background: linear-gradient(90deg, #217dbb 0%, #43c6f7 100%);
+      box-shadow: 0 4px 16px rgba(52,152,219,0.25);
+      transform: translateY(-2px) scale(1.04);
+    }
+    </style>
 </head>
 <body>
     <!-- 定位權限請求遮罩層 (預設隱藏) -->
@@ -36,7 +127,7 @@
             <button id="range-toggle-btn" class="triangle-btn" type="button" aria-label="展開搜尋範圍"></button>
         </div>
 
-        <div id="range-select-group" style="display: none;">
+        <div id="range-select-group" style="display: block;">
             <select id="range-select" onchange="updateRangePlaceholder()">
                 <option value="count">最近的____個</option>
                 <option value="distance">____公尺以內</option>
@@ -44,9 +135,9 @@
             <input type="text" id="range-input" placeholder="10">
             <!-- 排序區塊：三行距離/價格/剩餘空位，每行右側有上下箭頭 -->
             <div class="sort-list-group" style="width: calc(100% - 72px); margin-left: 0; margin-top: 12px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px;">
-                <div class="sort-row sort-second"><span class="sort-label">距離</span><span></span></div>
-                <div class="sort-row sort-second"><span class="sort-label">價格</span><span></span></div>
-                <div class="sort-row sort-second"><span class="sort-label">剩餘空位</span><span></span></div>
+                <div class="sort-row sort-second"><span class="sort-label">📍距離</span><span></span></div>
+                <div class="sort-row sort-second"><span class="sort-label">💲價格</span><span></span></div>
+                <div class="sort-row sort-second"><span class="sort-label">🅿️剩餘空位</span><span></span></div>
             </div>
             <button id="range-submit-btn" style="margin-left:8px; padding:2px 10px; border-radius:4px; border:1px solid #888; background:#444; color:#fff; cursor:pointer; margin-top: 8px;">套用</button>
         </div>
@@ -151,7 +242,7 @@
     <!-- 頂部標題欄，包含按鈕和網站標題 -->
     <div id="top-bar" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 100; height: 56px; background: #222; display: flex; align-items: center;">
         <button id="menu-toggle-btn" style="position:absolute; left:16px; top:50%; transform:translateY(-50%); z-index:20; background:#333; color:#fff; border:none; border-radius:4px; padding:8px 12px; font-size:20px; cursor:pointer;">☰</button>
-        <h1 id="main-title" style="margin-left:48px; color:#fff; font-size: 1.5rem;">停車場比價網</h1>
+        <h1 id="main-title">PARKGO</h1>
     </div>
 
     <!-- 地圖全螢幕區域 -->
@@ -835,6 +926,37 @@ document.addEventListener('DOMContentLoaded', function() {
   map.on('load', updateZoomDisplay);
   updateZoomDisplay();
 });
-        </script>
+    </script>
+    <!-- i-modal.html 說明視窗按鈕與內容 -->
+    <button id="open-modal">顯示說明</button>
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="close-modal">&times;</span>
+        <p>在台灣，<span class="highlight">尋找停車位</span>經常是一件既耗時又令人困擾的事情。為了解決這個問題，我們提出了「停車場比價網」的概念，打造出一個能夠即時查詢並比較各停車場資訊的網站。</p>
+        <p>本網站的核心功能之一是透過地圖介面（採用 <a href="https://www.mapbox.com/" target="_blank">Mapbox</a>）清楚呈現每個停車場的位置。使用者可以查詢目前位置到各停車場的距離（透過外部 API 計算），並根據 <span class="highlight">停車費用、距離、剩餘空位</span>等條件進行排序，快速找到最合適的停車場。</p>
+        <p>網站也提供即時線上瀏覽量顯示，以分析使用者使用趨勢，並利用模擬資料來呈現停車場詳細資訊。</p>
+        <p>進一步功能包括顯示各停車場支援的<span class="highlight">付款方式</span>（如行動支付、信用卡等）以及是否具備<span class="highlight">電動車充電設備</span>，大幅提升實用性與完整性。</p>
+        <p>透過這樣的設計，我們希望為台灣的駕駛人打造一個<span class="highlight">快速、方便、資訊透明</span>的停車場查詢與比價平台。</p>
+      </div>
+    </div>
+    <script>
+    // i-modal.html modal script
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById("info-modal");
+      const btn = document.getElementById("open-modal");
+      const span = document.getElementById("close-modal");
+      btn.onclick = function() {
+        modal.style.display = "block";
+      }
+      span.onclick = function() {
+        modal.style.display = "none";
+      }
+      window.addEventListener('click', function(event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      });
+    });
+    </script>
 </body>
 </html>
